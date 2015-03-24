@@ -1,6 +1,5 @@
 --[[
 Copyright 2015 Virgo Agent Toolkit Authors
-Copyright Tomaz Muraus
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,6 +18,18 @@ local Transform = require('stream').Transform
 
 local LineEmitter = Transform:extend()
 
+local function gsplit2(s, sep)
+  local lasti, done, g = 1, false, s:gmatch('(.-)'..sep..'()')
+  return function()
+    if done then return end
+    local v,i = g()
+    if s == '' or sep == '' then done = true return s end
+    if v == nil then done = true return -1, s:sub(lasti) end
+    lasti = i
+    return v
+  end
+end
+
 function LineEmitter:initialize(initialBuffer, options)
   options = options or {}
   options.objectMode = true
@@ -28,38 +39,29 @@ function LineEmitter:initialize(initialBuffer, options)
 end
 
 function LineEmitter:_write(chunk, encoding, callback)
-  local line
-
   if not chunk then
-    return self:push()
+    self:push()
+    process.nextTick(callback)
+    return
   end
 
-  self._buffer = self._buffer .. chunk
-
-  line = self:_popLine()
-  while line do
-    self:push(line)
-    line = self:_popLine()
+  if self.buffer then 
+    chunk = self.buffer .. chunk
   end
 
-  callback()
-end
-
-function LineEmitter:_popLine()
-  local line = false
-  local index = self._buffer:find('\n')
-
-  if index then
-    line = self._buffer:sub(0, index - 1)
-
-    if self._includeNewLine then
-      line = line .. '\n'
+  for line, last in gsplit2(chunk, '[\n]') do
+    if type(line) == 'number' then
+      self.buffer = last
+    else
+      if self._includeNewLine then
+        self:push(line .. '\n')
+      else
+        self:push(line)
+      end
     end
-
-    self._buffer = self._buffer:sub(index + 1)
   end
 
-  return line
+  process.nextTick(callback)
 end
 
 exports.LineEmitter = LineEmitter

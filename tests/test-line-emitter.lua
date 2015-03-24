@@ -15,6 +15,7 @@ limitations under the License.
 --]]
 
 local LineEmitter = require('../lib/emitter').LineEmitter
+local timer = require('timer')
 
 require('tap')(function(test)
   test('test_line_emitter_single_chunk', function(expect)
@@ -59,7 +60,7 @@ require('tap')(function(test)
     le = LineEmitter:new()
     le:on('data', onData)
     le:on('end', expect(onEnd))
-    le:write('test1\n')
+    le:write('test1\n') 
     le:write('test2\n')
     le:write('test3\n')
     le:write('test4\ntest5')
@@ -74,7 +75,6 @@ require('tap')(function(test)
     lines = {'test1\n', 'test2\n', 'test3\n', 'test4\n', 'test5\n'}
   
     function onData(line)
-      p(line)
       count = count + 1
       assert(line == lines[count])
     end
@@ -91,5 +91,25 @@ require('tap')(function(test)
     le:write('test3\n')
     le:write('test4\ntest5')
     le:write('\n')
+    le:write()
+  end)
+
+  test('test_line_emitter_large_data', function(expect)
+    local le, onData, onEnd
+    local count = 0
+    local replCount = 1024 * 1024 * 1
+    local a = string.rep('abcdefghijklmnopqrstuvwxyz\n', replCount)
+  
+    function onData(line)
+      count = count + 1
+    end
+
+    function onEnd() assert(count == replCount) end
+  
+    le = LineEmitter:new('', {includeNewLine = true})
+    le:on('data', onData)
+    le:on('end', expect(onEnd))
+    le:write(a)
+    le:write()
   end)
 end)
