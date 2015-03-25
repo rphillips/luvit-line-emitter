@@ -12,7 +12,7 @@ Library is distributed under the [Apache license](http://www.apache.org/licenses
 
 ## Running Tests
 
-```bash
-git submodule update --init
+```sh
+make
 make test
 ```
