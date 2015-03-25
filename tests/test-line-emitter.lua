@@ -15,7 +15,6 @@ limitations under the License.
 --]]
 
 local LineEmitter = require('../lib/emitter').LineEmitter
-local timer = require('timer')
 
 require('tap')(function(test)
   test('test_line_emitter_single_chunk', function(expect)

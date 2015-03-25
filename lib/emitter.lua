@@ -38,7 +38,7 @@ function LineEmitter:initialize(initialBuffer, options)
   self._includeNewLine = options['includeNewLine']
 end
 
-function LineEmitter:_write(chunk, encoding, callback)
+function LineEmitter:_write(chunk, _, callback)
   if not chunk then
     self:push()
     process.nextTick(callback)
