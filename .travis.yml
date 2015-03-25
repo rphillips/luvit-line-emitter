@@ -1,12 +1,8 @@
-language: erlang
-
-env:
-  - LUVIT_VERSION=0.5.0
-  - LUVIT_VERSION=0.6.0
+language: C
 
 script:
-  - git submodule update --init
   - make test
 
 notifications:
-  email: tomaz+travisci@tomaz.me
+  irc:
+    - chat.freenode.net#virgo-dev
